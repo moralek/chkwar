@@ -1,14 +1,8 @@
-# Ignorar todo por defecto
 *
-
-# Permitir solo los archivos principales
 !chkwar.py
 !chkwar.ini
 !run.bat
 
-# Permitir la carpeta wars y su archivo LÉEME.txt
-!wars/
+wars/*
 !wars/LÉEME.txt
 
-# Ignorar todo lo demás dentro de wars
-wars/*
