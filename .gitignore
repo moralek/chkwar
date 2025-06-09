@@ -2,6 +2,7 @@
 !chkwar.py
 !chkwar.ini
 !run.bat
+!README.md
 
 wars/*
 !wars/LÉEME.txt

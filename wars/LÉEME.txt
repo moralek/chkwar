@@ -1,1 +1,1 @@
-ubica aquí los archivos a revisar (*.war)
+Aquí van los archivos a revisar (*.war)
