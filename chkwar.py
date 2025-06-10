@@ -90,15 +90,15 @@ with open(archivo_ini, encoding="utf-8") as f:
             if seccion.upper().startswith("CHECK") and seccion[5:].isdigit():
                 if bloque_actual:
                     bloques.append(bloque_actual)
-                bloque_actual = {"ZIPLST": [], "REGLAS": [], "ZIPRAW": "", "SECCION": seccion}
+                bloque_actual = {"FILES": [], "REGLAS": [], "ZIPRAW": "", "SECCION": seccion}
             continue
         if "=" not in linea or bloque_actual is None:
             continue
         clave, valor = map(str.strip, linea.split("=", 1))
         clave = clave.strip().upper()
         valor = parse_valor(valor)
-        if clave == "ZIPLST":
-            bloque_actual["ZIPLST"].extend([parse_valor(v.strip()) for v in valor.split(",")])
+        if clave in {"FILES", "ZIPLST", "ARCHIVOS"}:
+            bloque_actual["FILES"].extend([parse_valor(v.strip()) for v in valor.split(",")])
             bloque_actual["ZIPRAW"] = f"{clave}={valor}"
         else:
             if clave.endswith("+") or clave.endswith("-"):
@@ -146,14 +146,15 @@ try:
     resultado_csv = []
 
     for bloque in bloques:
-        patrones = bloque["ZIPLST"]
+        patrones = bloque["FILES"]
         reglas = bloque["REGLAS"]
         archivos = []
         for patron in patrones:
             archivos.extend(zip_folder.glob(patron))
         archivos = list(dict.fromkeys(archivos))
-
-        resultado_csv.append((f"[{bloque['SECCION']}]", bloque["ZIPRAW"], len(archivos)))
+        
+        tipo = "ERROR" if len(archivos) == 0 else "INFO"
+        resultado_csv.append((f"[{bloque['SECCION']}]", bloque["ZIPRAW"], len(archivos), tipo))
 
         for archivo in archivos:
             try:
@@ -162,7 +163,7 @@ try:
                     for clave, valor, signo in reglas:
                         comando = f"{clave}{signo}={valor}"
                         if clave == "MSGRUN":
-                            resultado_csv.append((archivo.name, comando, -1))
+                            resultado_csv.append((archivo.name, comando, -1, "INFO"))
                             filas += 1
                             continue
                         if clave == "CHKDIR":
@@ -173,35 +174,33 @@ try:
                             cantidad = chktxt(zipf, valor)
                         else:
                             continue
+                        if cantidad == -1 or (signo == "+" and cantidad == 0) or (signo == "-" and cantidad > 0):
+                            es_error = True
+                            tipo = "ERROR"
+                        else:
+                            es_error = False
+                            tipo = "INFO"
 
                         if not menos_info:
-                            log(DEBUG,f"if not menos_info | comando={comando} | signo={signo} | cantidad={cantidad} | menos_info={menos_info}")
-                            resultado_csv.append((archivo.name, comando, cantidad))
+                            log(DEBUG, f"if not menos_info | comando={comando} | signo={signo} | cantidad={cantidad} | menos_info={menos_info}")
+                            resultado_csv.append((archivo.name, comando, cantidad, tipo))
                             filas += 1
                         else:
-                            if cantidad == -1:
-                                log(DEBUG,f"cantidad == -1     | comando={comando} | signo={signo} | cantidad={cantidad} | menos_info={menos_info}")
-                                resultado_csv.append((archivo.name, comando, -1))
-                                filas += 1
-                            elif signo == "+" and cantidad == 0:
-                                log(DEBUG,f"signo == '+' and cantidad == 0 | comando={comando} | signo={signo} | cantidad={cantidad} | menos_info={menos_info}")
-                                resultado_csv.append((archivo.name, comando, 0))
-                                filas += 1
-                            elif signo == "-" and cantidad > 0:
-                                log(DEBUG,f"signo == '-' and cantidad > 0 | comando={comando} | signo={signo} | cantidad={cantidad} | menos_info={menos_info}")
-                                resultado_csv.append((archivo.name, comando, cantidad))
+                            if es_error:
+                                log(DEBUG, f"cantidad == -1     | comando={comando} | signo={signo} | cantidad={cantidad} | menos_info={menos_info}")
+                                resultado_csv.append((archivo.name, comando, cantidad, tipo))
                                 filas += 1
                             else:
-                                log(DEBUG,f"regla ignorada     | comando={comando} | signo={signo} | cantidad={cantidad} | menos_info={menos_info}")
+                                log(DEBUG, f"regla ignorada     | comando={comando} | signo={signo} | cantidad={cantidad} | menos_info={menos_info}")
 
                     if mostrar_ok and filas == 0:
-                        resultado_csv.append((archivo.name, "ok", -1))
+                        resultado_csv.append((archivo.name, "ok", -1, "INFO"))
             except Exception:
-                resultado_csv.append((archivo.name, "ERROR: no se pudo abrir el archivo", -1))
+                resultado_csv.append((archivo.name, "ERROR: no se pudo abrir el archivo", -1, "ERROR"))
 
     with open(csv_file, "w", encoding="utf-8", newline='') as f:
         writer = csv.writer(f, delimiter=csv_separator)
-        writer.writerow(["Archivo", "Comando", "Coincidencias"])
+        writer.writerow(["Archivo", "Comando", "Hits", "Tipo"])
         writer.writerows(resultado_csv)
 
     log(INFO, f"Archivo generado: {csv_file.name}")

@@ -1,5 +1,23 @@
 (Nota: Readme creado por ChatGPT mientra tanto, (hasta que tenga un tiempo de hacerlo bien):
 
+- Para que funcione el run.bat debe estar Docker Desktop corriendo
+
+Ruta(orden al azar)
+- Agregar una columna que indique claramente si la fila es INFO o ERROR , `ok`
+- Reordenar las carpetas (eliminar "compartido"), todo en una carpeta bat y script, solo una carpeta adicional para los wars, `ok`
+- Cambiar ZIPLST a FILES, `ok`
+- Reemplazar MENOS_INFO por tipo mas claro, algo como "Mostrar_ERROR, mostrar_INFO, mostrar_INFO_OK" para mostrar/ocultar por tipo , `pendiente`
+- Casos de uso de generación SIGAS, crear el chkwar.ini SIGAS, `pendiente`
+- Revisar si existe un Docker con modulo excel para python para mejorar la ejecucion( agregar autofit, fuente bold, colores en el documento) para evitar build con Dockerfile, `pendiente`
+- Indicadores de mostrar/ocultar para tipos INFO, ERROR, `pendiente`
+- Etiqueta DEBUG_ENABLED en el .py para revisar el script, `ok`
+- Mejora logs cuando DEBUG_ENABLED en py, `pendiente`
+- Crear el readme.md, `pendiente`
+- Testing inicial full, `pendiente`
+- Ver compilación en un exe pero que no detecte el antivirus como falso positivo, `pendiente`
+- Agregar "+ / -" a FILES, para mostrar los que cumplen o aquellos que "no cumplen" con la condicion/patron,`pendiente`
+- ver la posibilidad de CLRDIR y DELFIL ( o posible recomprimir y R/W) , `pendiente`
+
 # chkwar
 
 `chkwar` es una herramienta en Python para inspeccionar archivos `.war` (o `.zip`) de forma automatizada, aplicando reglas definidas en un archivo de configuración `.ini`. Permite verificar la presencia o ausencia de archivos, carpetas y contenidos según patrones personalizables.
