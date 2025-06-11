@@ -43,7 +43,7 @@ zip_folder = base_path / "wars"
 csv_file = base_path / "chkwar.csv"
 csv_separator = ";"
 menos_info = False
-mostrar_ok = False
+archivos_ok = False
 
 bloques = []
 bloque_actual = None
@@ -76,8 +76,8 @@ with open(archivo_ini, encoding="utf-8") as f:
             csv_separator = valor
         elif clave == "MENOS_INFO":
             menos_info = valor.strip() == "1"
-        elif clave == "MOSTRAR_OK":
-            mostrar_ok = valor.strip() == "1"
+        elif clave in("MOSTRAR_OK","ARCHIVOS_OK"):
+            archivos_ok = valor.strip() == "1"
 
 #bloques [CHECKX]          
 with open(archivo_ini, encoding="utf-8") as f:
@@ -115,11 +115,6 @@ def chkdir(zipf, path):
     ruta = normalizar_ruta(path).rstrip('/')
     return int(any(entry.filename.rstrip('/') == ruta for entry in zipf.infolist()))
 
-#def chkfil(zipf, path):
-#    patron = normalizar_ruta(path)
-#    patron_regex = re.escape(patron).replace(r'\\*', '[^/]*')
-#    return sum(1 for name in zipf.namelist() if re.fullmatch(patron_regex, name))
-
 def chkfil(zipf, path):
     patron = normalizar_ruta(path)
     patron = patron.replace("**", "___RECURSIVO___")
@@ -140,7 +135,7 @@ def chktxt(zipf, instruccion):
             lineas = contenido.splitlines()
             return sum(line.count(texto) for line in lineas)
     except KeyError:
-        return -1
+        return 0
 
 try:
     resultado_csv = []
@@ -193,7 +188,7 @@ try:
                             else:
                                 log(DEBUG, f"regla ignorada     | comando={comando} | signo={signo} | cantidad={cantidad} | menos_info={menos_info}")
 
-                    if mostrar_ok and filas == 0:
+                    if archivos_ok and filas == 0:
                         resultado_csv.append((archivo.name, "ok", -1, "INFO"))
             except Exception:
                 resultado_csv.append((archivo.name, "ERROR: no se pudo abrir el archivo", -1, "ERROR"))
